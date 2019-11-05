@@ -1,21 +1,33 @@
 const router = require("express").Router();
+const db = require("../data/cars/dbConfig");
 
 router.get("/", async (req, res) => {
-
+    try {
+        const cars = await db.select('*').from('cars');
+        res.status(200).json(cars);
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error while fetching cars" });
+    }
 });
 
 router.get("/:id", async (req, res) => {
-    const { id } = req.params;
-    
+    try {
+        const car = await db.select('*').from('cars').where({ id: req.params.id });
+        if (!car.length) { res.status(404).json({ message: "Car at given id not found" }) };
+        res.status(200).json(car);
+    } catch (error) {
+        res.status(500).json({ message: "Internal server error while fetching car" });
+    }
 });
 
 router.post("/", async (req, res) => {
     const body = req.body;
     if (!body) { res.status(400).json({ message: "Error: Body required for post" }) }
     try {
-
+        const newId = await db.insert(req.body, 'id').into('cars');
+        res.status(201).json(newId);
     } catch (error) {
-        res.status(500).json({message: "Internal server error while attempting to add car."});
+        res.status(500).json({ message: "Internal server error while attempting to add car." });
     }
 });
 
